@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QBot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <% if (!user) { %>
+        <h1 class="my-3">Welcome to QBot</h1>
+        <p>QBot is a Twitch bot designed to facilitate viewer interaction during live streams. It allows viewers to ask
+            questions, which are then stored in a database for the streamer to answer at their convenience.</p>
+        <p>If you're already onboarded into this alpha release, you can log in via the button below (you can also log in
+            without being onboarded, but you won't receive any questions!):</p>
+        <button onclick="location.href='/auth/twitch'" class="btn btn-primary mb-3">Log in with Twitch</button>
+    <% } else { %>
+        <h1 class="my-3">Questions</h1>
+        <button id="delete-selected" class="btn btn-danger mb-3" disabled>Delete Selected</button>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col"><input type="checkbox" id="select-all"> Select all</th>
+                <th scope="col">Username</th>
+                <th scope="col">Question</th>
+                <th scope="col">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <% questions.forEach(function(question) { %>
+                <tr data-id="<%= question.id %>">
+                    <td><input type="checkbox" class="select-question"></td>
+                    <td><%= question.username %></td>
+                    <td><%= question.question %></td>
+                    <td>
+                        <button class="btn btn-danger delete-btn">Delete</button>
+                    </td>
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    <% } %>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        $('.select-question').on('change', function () {
+            var anyChecked = $('.select-question:checked').length > 0;
+            $('#delete-selected').prop('disabled', !anyChecked);
+        });
+
+
+        $('#select-all').on('change', function () {
+            $('.select-question').prop('checked', $(this).prop('checked')).change();
+        });
+
+
+        $('.delete-btn').on('click', function () {
+            var row = $(this).closest('tr');
+            var id = row.data('id');
+            fetch('/questions/' + id, {method: 'DELETE'})
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Failed to delete question');
+                    row.remove();
+                })
+                .catch(function (error) {
+                    console.error('Error:', error);
+                });
+        });
+    });
+</script>
+</body>
+</html>
